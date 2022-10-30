@@ -261,6 +261,28 @@ export default class App extends React.Component {
         return api;
     }
 
+    setupWebSocket() {
+        const {webSocketUrl} = this.props;
+        const socket = new WebSocket(webSocketUrl);
+
+        socket.addEventListener('message', (event) => {
+            const json = JSON.parse(event.data);
+
+            if (json?.type !== 'comment-count') {
+                return;
+            }
+
+            const dataPostId = json.data.postId;
+            const dataCommentCount = json.data.count;
+
+            if (dataPostId !== this.state.postId) {
+                return;
+            }
+
+            this.setState({commentCount: dataCommentCount});
+        });
+    }
+
     /** Setup Sentry */
     setupSentry() {
         // Not implemented yet
@@ -299,6 +321,7 @@ export default class App extends React.Component {
 
     componentDidMount() {
         this.initSetup();
+        this.setupWebSocket();
     }
 
     componentWillUnmount() {

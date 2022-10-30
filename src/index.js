@@ -39,6 +39,7 @@ function getSiteData() {
     const apiKey = dataset.key;
     const apiUrl = dataset.api;
     const adminUrl = dataset.admin;
+    const webSocketUrl = dataset.webSocket;
     const sentryDsn = dataset.sentryDsn;
     const postId = dataset.postId;
     const colorScheme = dataset.colorScheme;
@@ -51,7 +52,7 @@ function getSiteData() {
     const showCount = dataset.count === 'true';
     const publication = dataset.publication ?? ''; // TODO: replace with dynamic data from script
 
-    return {siteUrl, stylesUrl, apiKey, apiUrl, sentryDsn, postId, adminUrl, colorScheme, avatarSaturation, accentColor, appVersion, commentsEnabled, title, showCount, publication};
+    return {siteUrl, stylesUrl, apiKey, apiUrl, sentryDsn, postId, adminUrl, webSocketUrl, colorScheme, avatarSaturation, accentColor, appVersion, commentsEnabled, title, showCount, publication};
 }
 
 function handleTokenUrl() {
