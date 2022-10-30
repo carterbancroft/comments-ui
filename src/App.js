@@ -51,6 +51,7 @@ export default class App extends React.Component {
         };
         this.adminApi = null;
         this.GhostApi = null;
+        this.webSocket = null;
 
         // Bind to make sure we have a variable reference (and don't need to create a new binded function in our context value every time the state changes)
         this.dispatchAction = this.dispatchAction.bind(this);
@@ -263,17 +264,26 @@ export default class App extends React.Component {
 
     setupWebSocket() {
         const {webSocketUrl} = this.props;
-        const socket = new WebSocket(webSocketUrl);
+        this.webSocket = new WebSocket(webSocketUrl);
 
-        socket.addEventListener('message', (event) => {
-            const json = JSON.parse(event.data);
+        this.webSocket.addEventListener('message', (event) => {
+            let json = null;
+
+            try {
+                json = JSON.parse(event.data);
+            } catch (err) {
+                /* eslint-disable no-console */
+                console.error('Error parsing web socket comment count data', err);
+                /* eslint-enable no-console */
+                return;
+            }
 
             if (json?.type !== 'comment-count') {
                 return;
             }
 
-            const dataPostId = json.data.postId;
-            const dataCommentCount = json.data.count;
+            const dataPostId = json.context.postId;
+            const dataCommentCount = json.context.count;
 
             if (dataPostId !== this.state.postId) {
                 return;
@@ -327,6 +337,12 @@ export default class App extends React.Component {
     componentWillUnmount() {
         /**Clear timeouts and event listeners on unmount */
         clearTimeout(this.timeoutId);
+
+        // Close the websocket connection when this is unmounting. Technically
+        // there still could be buffered data which we may normally want to
+        // check first but since we're only dealing with comment counts it's
+        // not that important.
+        this.webSocket.close();
     }
 
     render() {
