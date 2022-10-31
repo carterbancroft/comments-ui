@@ -182,23 +182,7 @@ describe('Comments', () => {
             postId: fakePostId
         };
 
-        const {api, iframeDocument} = renderApp({props: extraProps});
-        jest.spyOn(api.comments, 'browse').mockImplementation(() => {
-            return {
-                comments: [
-                    buildComment({html: '<p>This is a comment body</p>'})
-                ],
-                meta: {
-                    pagination: {
-                        limit: 5,
-                        total: 1,
-                        next: null,
-                        prev: null,
-                        page: 1
-                    }
-                }
-            };
-        });
+        const {iframeDocument} = renderApp({props: extraProps});
 
         let commentBody = await within(iframeDocument).findByText(/0 comments/i);
         expect(commentBody).toBeInTheDocument();

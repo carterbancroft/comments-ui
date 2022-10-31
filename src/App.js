@@ -301,7 +301,6 @@ export default class App extends React.Component {
     /**Get final App level context from App state*/
     getContextFromState() {
         const {action, popupNotification, customSiteUrl, member, comments, pagination, commentCount, postId, admin, popup, secundaryFormCount} = this.state;
-
         return {
             action,
             popupNotification,
