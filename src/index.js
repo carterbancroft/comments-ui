@@ -39,6 +39,8 @@ function getSiteData() {
     const apiKey = dataset.key;
     const apiUrl = dataset.api;
     const adminUrl = dataset.admin;
+    // I was pretty proud of figuring out how to get the webSocket value into that script tag. I hope I didn't go overboard
+    // by doing that though.
     const webSocketUrl = dataset.webSocket;
     const sentryDsn = dataset.sentryDsn;
     const postId = dataset.postId;

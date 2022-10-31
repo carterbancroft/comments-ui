@@ -18,6 +18,9 @@ function renderApp({member = null, documentStyles = {}, props = {}} = {}) {
         },
         comments: {
             count: async () => {
+                // My change here feels weird. I need to look into this more but it seemed like what was being returned in this
+                // mock before wasn't exactly right. I'm probably misunderstanding. Though, this does work across all tests
+                // including mine... which were broken with the old response.
                 return 0;
             },
             browse: async () => {

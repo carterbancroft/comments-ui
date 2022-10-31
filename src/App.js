@@ -262,7 +262,12 @@ export default class App extends React.Component {
         return api;
     }
 
+    /** Setup a Web Socket connection to the server for comment count updates **/
     setupWebSocket() {
+        // One thing that's notably absent here is that there's no heartbeat on the FE. I could probably make it connect
+        // to the server every 30 seconds but that feels a bit weird. It appears you can't send pings via the WebSocket
+        // API either: https://stackoverflow.com/questions/10585355/sending-websocket-ping-pong-frame-from-browser
+
         const {webSocketUrl} = this.props;
         this.webSocket = new WebSocket(webSocketUrl);
 
@@ -278,6 +283,8 @@ export default class App extends React.Component {
                 return;
             }
 
+            // There may be a more robust way to design this rather than to just have a magic string check in here.
+            // It'd probably become more apparent as you add more broadcast types.
             if (json?.type !== 'comment-count') {
                 return;
             }
@@ -339,10 +346,8 @@ export default class App extends React.Component {
         clearTimeout(this.timeoutId);
 
         if (this.webSocket) {
-            // Close the websocket connection when this is unmounting. Technically
-            // there still could be buffered data which we may normally want to
-            // check first but since we're only dealing with comment counts it's
-            // not that important.
+            // Close the websocket connection when this is unmounting. Technically there still could be buffered data which we may
+            // normally want to check first but since we're only dealing with comment counts it's not that important.
             this.webSocket.close();
         }
     }
