@@ -301,6 +301,7 @@ export default class App extends React.Component {
     /**Get final App level context from App state*/
     getContextFromState() {
         const {action, popupNotification, customSiteUrl, member, comments, pagination, commentCount, postId, admin, popup, secundaryFormCount} = this.state;
+
         return {
             action,
             popupNotification,
@@ -338,11 +339,13 @@ export default class App extends React.Component {
         /**Clear timeouts and event listeners on unmount */
         clearTimeout(this.timeoutId);
 
-        // Close the websocket connection when this is unmounting. Technically
-        // there still could be buffered data which we may normally want to
-        // check first but since we're only dealing with comment counts it's
-        // not that important.
-        this.webSocket.close();
+        if (this.webSocket) {
+            // Close the websocket connection when this is unmounting. Technically
+            // there still could be buffered data which we may normally want to
+            // check first but since we're only dealing with comment counts it's
+            // not that important.
+            this.webSocket.close();
+        }
     }
 
     render() {

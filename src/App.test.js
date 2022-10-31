@@ -3,9 +3,13 @@ import userEvent from '@testing-library/user-event';
 import App from './App';
 import {ROOT_DIV_ID} from './utils/constants';
 import {buildComment, buildMember} from './utils/test-utils';
+import {Server as MockSocketServer} from 'mock-socket';
+
+const fakePostId = 'my-post';
+const fakeWebSocketUrl = 'ws://socket.example';
+let mockSocketServer = null;
 
 function renderApp({member = null, documentStyles = {}, props = {}} = {}) {
-    const postId = 'my-post';
     const api = {
         init: async () => {
             return {
@@ -14,9 +18,7 @@ function renderApp({member = null, documentStyles = {}, props = {}} = {}) {
         },
         comments: {
             count: async () => {
-                return {
-                    [postId]: 0
-                };
+                return 0;
             },
             browse: async () => {
                 return {
@@ -72,7 +74,7 @@ function renderApp({member = null, documentStyles = {}, props = {}} = {}) {
     };
     // In tests, we currently don't wait for the styles to have loaded. In the app we check if the styles url is set or not.
     const stylesUrl = '';
-    const {container} = render(<div style={documentStyles}><div id={ROOT_DIV_ID}><App api={api} adminUrl="https://admin.example/" stylesUrl={stylesUrl} {...props}/></div></div>);
+    const {container} = render(<div style={documentStyles}><div id={ROOT_DIV_ID}><App api={api} adminUrl="https://admin.example/" webSocketUrl={fakeWebSocketUrl} stylesUrl={stylesUrl} {...props}/></div></div>);
     const iframeElement = container.querySelector('iframe[title="comments-frame"]');
     expect(iframeElement).toBeInTheDocument();
     const iframeDocument = iframeElement.contentDocument;
@@ -96,9 +98,12 @@ beforeEach(() => {
             }
         ];
     };
+
+    mockSocketServer = new MockSocketServer(fakeWebSocketUrl);
 });
 
 afterEach(() => {
+    mockSocketServer.stop();
     jest.restoreAllMocks();
 });
 
@@ -167,6 +172,44 @@ describe('Comments', () => {
         });
 
         const commentBody = await within(iframeDocument).findByText(/This is a comment body/i);
+        expect(commentBody).toBeInTheDocument();
+    });
+
+    it('updates comment count via websocket', async () => {
+        const extraProps = {
+            showCount: true,
+            title: 'Some title',
+            postId: fakePostId
+        };
+
+        const {api, iframeDocument} = renderApp({props: extraProps});
+        jest.spyOn(api.comments, 'browse').mockImplementation(() => {
+            return {
+                comments: [
+                    buildComment({html: '<p>This is a comment body</p>'})
+                ],
+                meta: {
+                    pagination: {
+                        limit: 5,
+                        total: 1,
+                        next: null,
+                        prev: null,
+                        page: 1
+                    }
+                }
+            };
+        });
+
+        let commentBody = await within(iframeDocument).findByText(/0 comments/i);
+        expect(commentBody).toBeInTheDocument();
+
+        const commentCountJson = {
+            type: 'comment-count',
+            context: {postId: fakePostId, count: 3}
+        };
+        mockSocketServer.emit('message', JSON.stringify(commentCountJson));
+
+        commentBody = await within(iframeDocument).findByText(/3 comments/i);
         expect(commentBody).toBeInTheDocument();
     });
 
